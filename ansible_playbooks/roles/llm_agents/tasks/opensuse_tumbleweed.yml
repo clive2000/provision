@@ -1,0 +1,37 @@
+- name: Check if Claude Code is installed
+  ansible.builtin.command: which claude
+  register: claude_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Claude Code via install script
+  when: claude_check.rc != 0
+  become: false
+  block:
+    - name: Download Claude Code install script
+      ansible.builtin.get_url:
+        url: https://claude.ai/install.sh
+        dest: /tmp/claude_install.sh
+        mode: "0755"
+
+    - name: Execute Claude Code installer
+      ansible.builtin.shell: /tmp/claude_install.sh
+
+- name: Check if OpenCode is installed
+  ansible.builtin.command: which opencode
+  register: opencode_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Install OpenCode via install script
+  when: opencode_check.rc != 0
+  become: false
+  block:
+    - name: Download OpenCode install script
+      ansible.builtin.get_url:
+        url: https://opencode.ai/install
+        dest: /tmp/opencode_install.sh
+        mode: "0755"
+
+    - name: Execute OpenCode installer
+      ansible.builtin.shell: /tmp/opencode_install.sh

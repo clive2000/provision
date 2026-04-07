@@ -1,0 +1,106 @@
+- name: Kitty exists
+  ansible.builtin.stat:
+    path:  /home/{{ original_user }}/.local/kitty.app
+  register: kitty_stat
+
+- name: Download kitty install script
+  ansible.builtin.get_url:
+    url: https://sw.kovidgoyal.net/kitty/installer.sh
+    dest: /tmp/kitty_installer.sh
+    mode: '0755'
+  when: not kitty_stat.stat.exists
+
+- name: Execute kitty installer
+  ansible.builtin.shell: /tmp/kitty_installer.sh launch=n
+  when: not kitty_stat.stat.exists
+  become: false
+
+# Kitty post install scripts
+
+- name: Check if ~/.local/bin exists
+  stat:
+    path: "/home/{{ original_user }}/.local/bin"
+  register: local_bin_check
+
+- name: Create ~/.local/bin if it doesn't exist
+  file:
+    path: "/home/{{ original_user }}/.local/bin"
+    state: directory
+    mode: 0755
+  when: not local_bin_check.stat.exists
+  become: false
+
+- name: Create symbolic links for kitty and kitten
+  file:
+    src: "/home/{{ original_user }}/.local/kitty.app/bin/{{ item }}"
+    dest: "/home/{{ original_user }}/.local/bin/{{ item }}"
+    state: link
+    force: yes # Overwrite existing symlinks
+  loop:
+    - kitty
+    - kitten
+  become: false
+
+- name: Check if ~/.local/share/applications exists
+  stat:
+    path: "/home/{{ original_user }}/.local/share/applications"
+  register: applications_dir_check
+
+- name: Create ~/.local/share/applications if it doesn't exist
+  file:
+    path: "/home/{{ original_user }}/.local/share/applications"
+    state: directory
+    mode: 0755
+  when: not applications_dir_check.stat.exists
+  become: false
+
+- name: Copy kitty.desktop file
+  copy:
+    src: "/home/{{ original_user }}/.local/kitty.app/share/applications/kitty.desktop"
+    dest: "/home/{{ original_user }}/.local/share/applications/kitty.desktop"
+    remote_src: yes
+  become: false
+
+- name: Copy kitty-open.desktop file (optional)
+  copy:
+    src: "/home/{{ original_user }}/.local/kitty.app/share/applications/kitty-open.desktop"
+    dest: "/home/{{ original_user }}/.local/share/applications/kitty-open.desktop"
+    remote_src: yes
+  become: false
+
+- name: Update paths in kitty*.desktop files
+  block:
+    - name: Find kitty desktop files
+      find:
+        paths: "/home/{{ original_user }}/.local/share/applications"
+        patterns: "kitty*.desktop"
+      register: desktop_files
+      changed_when: false
+
+    - name: Get absolute path to kitty icon
+      command: "readlink -f /home/{{ original_user }}/.local/kitty.app/share/icons/hicolor/256x256/apps/kitty.png"
+      register: kitty_icon_path
+      changed_when: false
+
+    - name: Get absolute path to kitty executable
+      command: "readlink -f /home/{{ original_user }}/.local/kitty.app/bin/kitty"
+      register: kitty_exec_path
+      changed_when: false
+
+    - name: Replace Icon path in kitty*.desktop files
+      replace:
+        path: "{{ item.path }}"  # Use item.path from the find results
+        regexp: '^Icon=kitty'
+        replace: "Icon={{ kitty_icon_path.stdout }}"
+      loop: "{{ desktop_files.files }}"
+      when: kitty_icon_path.stdout is defined
+      become: false
+
+    - name: Replace Exec path in kitty*.desktop files
+      replace:
+        path: "{{ item.path }}"  # Use item.path from the find results
+        regexp: 'Exec=kitty'
+        replace: "Exec={{ kitty_exec_path.stdout }}"
+      loop: "{{ desktop_files.files }}"
+      when: kitty_exec_path.stdout is defined
+      become: false

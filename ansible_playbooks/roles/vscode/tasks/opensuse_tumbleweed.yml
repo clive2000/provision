@@ -1,0 +1,32 @@
+- name: Check if VS Code is installed
+  command: which code
+  register: vscode_check
+  ignore_errors: true
+
+- name: Add VS Code repository
+  block:
+    - name: Import Microsoft GPG key
+      rpm_key:
+        key: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Create VS Code repository file
+      copy:
+        content: |
+          [code]
+          name=Visual Studio Code
+          baseurl=https://packages.microsoft.com/yumrepos/vscode
+          enabled=1
+          type=rpm-md
+          gpgcheck=1
+          gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+        dest: /etc/zypp/repos.d/vscode.repo
+        mode: 0644
+  when: vscode_check.rc != 0
+
+- name: Install VS Code
+  community.general.zypper:
+    name: code
+    state: present
+    update_cache: yes
+  when: vscode_check.rc != 0

@@ -1,0 +1,10 @@
+- name: Install common packages on MacOSX
+  become: false
+  community.general.homebrew:
+    name:
+      - docker
+      - docker-compose
+      - docker-buildx
+      - colima
+      - lazydocker
+    state: present

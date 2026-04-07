@@ -1,0 +1,99 @@
+- name: Install CLI packages (Debian/Ubuntu)
+  apt:
+    name: "{{ cli_common_packages_ubuntu }}"
+    state: present
+
+- name: Atuin exists
+  ansible.builtin.stat:
+    path: /home/{{ original_user }}/.atuin/bin/atuin
+  register: atuin_stat
+
+- name: Zoxide exists
+  ansible.builtin.stat:
+    path: /home/{{ original_user }}/.local/bin/zoxide
+  register: zoxide_stat
+
+- name: eza exists
+  ansible.builtin.stat:
+    path: /usr/local/bin/eza
+  register: eza_stat
+
+- name: Install atuin
+  when: not atuin_stat.stat.exists
+  become: false
+  block:
+    - name: Download atuin install script
+      ansible.builtin.get_url:
+        url: https://github.com/atuinsh/atuin/releases/latest/download/atuin-installer.sh
+        dest: /tmp/atuin_installer.sh
+        mode: "0755"
+
+    - name: Execute atuin installer
+      ansible.builtin.shell: /tmp/atuin_installer.sh
+
+- name: Add atuin config to end of .zshrc
+  become: false
+  blockinfile:
+    path: "/home/{{ original_user }}/.zshrc"
+    block: |
+      eval "$(atuin init zsh)"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Atuin CONFIG"
+    insertafter: EOF
+    create: false
+
+- name: Install zoxide
+  when: not zoxide_stat.stat.exists
+  become: false
+  block:
+    - name: Download zoxide install script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh
+        dest: /tmp/zoxide_installer.sh
+        mode: "0755"
+
+    - name: Execute atuin installer
+      ansible.builtin.shell: /tmp/zoxide_installer.sh
+
+- name: Add zoxide config to end of .zshrc
+  become: false
+  blockinfile:
+    path: "/home/{{ original_user }}/.zshrc"
+    block: |
+      eval "$(zoxide init zsh)"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Zoxide CONFIG"
+    insertafter: EOF
+    create: false
+
+- name: Install eza
+  when: not eza_stat.stat.exists
+  become: true
+  block:
+    - name: Determine architecture
+      set_fact:
+        eza_arch: "x86_64"
+      when: ansible_facts['architecture'] == "x86_64"
+
+    - name: Determine architecture
+      set_fact:
+        eza_arch: "aarch64"
+      when: ansible_facts['architecture'] == "aarch64"
+
+    - name: Download eza
+      get_url:
+        url: "https://github.com/eza-community/eza/releases/latest/download/eza_{{ eza_arch }}-unknown-linux-gnu.tar.gz"
+        dest: /tmp/eza.tar.gz
+
+    - name: Extract eza
+      unarchive:
+        src: /tmp/eza.tar.gz
+        dest: /tmp
+        remote_src: yes
+
+    - name: Move eza to /usr/local/bin
+      copy:
+        src: /tmp/eza
+        dest: /usr/local/bin/eza
+        remote_src: yes
+        owner: root
+        group: root
+        mode: "0755"

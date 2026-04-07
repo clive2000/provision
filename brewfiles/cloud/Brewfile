@@ -1,0 +1,11 @@
+brew "kubernetes-cli"
+brew "k9s"
+brew "vcluster"
+brew "helm"
+brew "krew"
+brew "ctop"
+
+# Docker
+brew "docker"
+brew "docker-buildx"
+brew "docker-compose"

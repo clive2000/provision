@@ -1,0 +1,5 @@
+---
+- name: Install VS Code on Arch Linux (official repo)
+  community.general.pacman:
+    name: code
+    state: present

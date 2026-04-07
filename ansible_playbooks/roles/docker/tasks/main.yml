@@ -1,0 +1,15 @@
+- name: Add docker group
+  when: ansible_facts['system'] == "Linux"
+  group:
+    name: docker
+    state: present
+
+- name: Add the current user to 'mygroup'
+  when: ansible_facts['system'] == "Linux"
+  user:
+    name: "{{ original_user }}"
+    groups: docker
+    append: yes
+
+- name: Perform linux install for specifc machine
+  include_tasks: "{{ ansible_facts['distribution'] | lower | replace(' ', '_') }}.yml"

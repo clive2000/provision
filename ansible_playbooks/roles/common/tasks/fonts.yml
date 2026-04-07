@@ -1,0 +1,67 @@
+# Install cascadia code font
+
+- name: cascadia exists
+  ansible.builtin.stat:
+    path: "/usr/share/fonts/CaskaydiaCoveNerdFont-Regular.ttf"
+  register: cascadia_stat
+
+- name: Create Cascadia Fodler
+  when: not cascadia_stat.stat.exists
+  ansible.builtin.file:
+    path: "/tmp/cascadia"
+    state: directory
+
+- name: Download Cascadia
+  when: not cascadia_stat.stat.exists
+  ansible.builtin.unarchive:
+    src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/CascadiaCode.tar.xz
+    dest: "/tmp/cascadia"
+    remote_src: yes
+
+- name: Copy TTF fonts to the system fonts directory
+  when: not cascadia_stat.stat.exists
+  copy:
+    src: "{{ item }}"
+    dest: /usr/share/fonts/
+    mode: 0644
+  with_fileglob:
+    - "/tmp/cascadia/*.ttf"
+
+- name: Remove the temporary Cascadia folder
+  file:
+    path: /tmp/cascadia
+    state: absent
+
+# Install hack nerd code font
+
+- name: Hack NF exists
+  ansible.builtin.stat:
+    path: "/usr/share/fonts/HackNerdFont-Regular.ttf"
+  register: hack_stat
+
+- name: Create HackNF Folder
+  when: not hack_stat.stat.exists
+  ansible.builtin.file:
+    path: "/tmp/hacknf"
+    state: directory
+
+- name: Download HackNF
+  when: not hack_stat.stat.exists
+  ansible.builtin.unarchive:
+    src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Hack.tar.xz
+    dest: "/tmp/hacknf"
+    remote_src: yes
+
+- name: Copy TTF fonts to the system fonts directory
+  when: not hack_stat.stat.exists
+  copy:
+    src: "{{ item }}"
+    dest: /usr/share/fonts/
+    mode: 0644
+  with_fileglob:
+    - "/tmp/hacknf/*.ttf"
+
+- name: Remove the temporary Hack NF folder
+  file:
+    path: /tmp/hacknf
+    state: absent

@@ -1,0 +1,62 @@
+- name: Install Wezterm on Ubuntu ARM64
+  when: ansible_facts['distribution'] | lower | replace(' ', '_') == "ubuntu"
+  block:
+    - name: Check if wezterm is installed
+      ansible.builtin.command: which wezterm
+      register: wezterm_check
+      ignore_errors: true  # Don't fail if 'which code' returns a non-zero exit code
+    - name: Install required packages (wget, gpg)
+      apt:
+        name:
+          - gpg
+        state: present
+      when: wezterm_check.rc != 0  # Run only if VS Code is NOT installed
+    - name: Download wezterm GPG key
+      ansible.builtin.get_url:
+        url: https://apt.fury.io/wez/gpg.key
+        dest: /tmp/wezterm.asc
+        mode: '0644'
+      when: wezterm_check.rc != 0    
+    - name: Dearmor wezterm GPG key
+      ansible.builtin.shell: gpg --dearmor < /tmp/wezterm.asc > /tmp/packages.wezterm.gpg
+      args:
+        creates: /tmp/packages.wezterm.gpg
+      when: wezterm_check.rc != 0
+    - name: Add Wezterm GPG key to apt keyring
+      ansible.builtin.copy:
+        src: /tmp/packages.wezterm.gpg
+        dest: /etc/apt/keyrings/packages.wezterm.gpg
+        owner: root
+        group: root
+        mode: '0644'
+        remote_src: yes
+      when: wezterm_check.rc != 0
+    - name: Add Wezterm repository to apt sources
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/packages.wezterm.gpg] https://apt.fury.io/wez/ * *"
+        state: present
+        filename: wezterm
+      when: wezterm_check.rc != 0
+    - name: Clean up temporary files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/wezterm.asc
+        - /tmp/packages.wezterm.gpg
+      when: wezterm_check.rc != 0
+    - name: Install wezterm
+      apt:
+        name: wezterm
+        state: present
+        update_cache: yes
+      when: wezterm_check.rc != 0
+    
+
+- name: Install Wezterm on Opensuse ARM64
+  when: ansible_facts['distribution'] | lower | replace(' ', '_') == "opensuse_tumbleweed"
+  block:
+    - name: Install wezterm using zypper
+      community.general.zypper:
+        name: wezterm
+        state: present

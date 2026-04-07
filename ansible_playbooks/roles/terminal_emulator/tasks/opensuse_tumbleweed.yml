@@ -1,0 +1,5 @@
+---
+- name: Install Ghostty on openSUSE Tumbleweed
+  community.general.zypper:
+    name: ghostty
+    state: present

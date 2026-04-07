@@ -1,0 +1,4 @@
+---
+- name: Ubuntu terminal emulator (no-op)
+  debug:
+    msg: "Skipping terminal emulator installation on Ubuntu - using system default"

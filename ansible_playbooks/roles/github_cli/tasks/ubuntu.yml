@@ -1,0 +1,44 @@
+- name: Check if gh is installed
+  ansible.builtin.command: which gh
+  register: gh_check
+  ignore_errors: true # Don't fail if 'which code' returns a non-zero exit code
+
+- name: Download gh CLI GPG key
+  ansible.builtin.get_url:
+    url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+    dest: /tmp/githubcli-archive-keyring.gpg
+    mode: "0644"
+  when: gh_check.rc != 0
+
+- name: Add GH CLI GPG key to apt keyring
+  ansible.builtin.copy:
+    src: /tmp/githubcli-archive-keyring.gpg
+    dest: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: yes
+  when: gh_check.rc != 0
+
+- name: Add GH CLI repository to apt sources
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+    state: present
+    filename: github-cli
+  when: gh_check.rc != 0
+
+- name: Clean up temporary files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/githubcli-archive-keyring.gpg
+  when: gh_check.rc != 0
+
+- name: Install github cli
+  apt:
+    name:
+      - gh
+    state: present
+    update_cache: yes
+  when: gh_check.rc != 0

@@ -1,0 +1,5 @@
+---
+- name: Install Ghostty on Arch Linux
+  community.general.pacman:
+    name: ghostty
+    state: present

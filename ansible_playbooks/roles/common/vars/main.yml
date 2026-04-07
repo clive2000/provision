@@ -1,0 +1,48 @@
+---
+common_packages:
+  - git
+  - zsh
+  - curl
+  - wget
+  - vim
+  - fzf
+  - htop
+  - jq
+  - mosh
+  - make
+
+common_packages_ubuntu:
+  - apt-transport-https
+  - wireguard-tools
+  - bat
+  - build-essential
+
+common_packages_suse:
+  - bat
+  - wireguard-tools
+
+common_packages_arch:
+  - base-devel
+  - bat
+  - wireguard-tools
+
+homebrew_packages_macosx:
+  - git
+  - wget
+  - make
+  - gnupg
+
+homebrew_casks_macosx:
+  - visual-studio-code
+  - cursor
+  - openinterminal-lite
+  - font-cascadia-code
+  - font-caskaydia-mono-nerd-font
+  - font-hack-nerd-font
+
+oh_my_zsh_plugins:
+  - git
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
+  - you-should-use
+  - aliases

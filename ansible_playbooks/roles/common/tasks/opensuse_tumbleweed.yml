@@ -1,0 +1,20 @@
+- name: Install essential packages (Suse)
+  community.general.zypper:
+    name: "{{ common_packages_suse }}"
+    state: present
+    update_cache: yes
+
+- name: Install suse's build-essential(devel_basis)
+  community.general.zypper:
+    name: devel_basis
+    type: pattern
+    state: present
+
+- name: Install vm spcific packages
+  community.general.zypper:
+    name: open-vm-tools
+    state: present
+  when: ansible_facts['virtualization_type'] == "VMware" and ansible_facts['virtualization_role'] == "guest"
+
+- name: Perform fonts insallation
+  include_tasks: "fonts.yml"

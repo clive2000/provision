@@ -1,0 +1,8 @@
+---
+- name: Install Arch-specific packages
+  community.general.pacman:
+    name: "{{ common_packages_arch }}"
+    state: present
+
+- name: Perform fonts installation
+  include_tasks: "fonts.yml"

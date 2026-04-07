@@ -1,0 +1,25 @@
+- name: Install common packages on MacOSX
+  become: false
+  community.general.homebrew:
+    name: "{{ cli_common_packages_macosx }}"
+    state: present
+
+- name: Add atuin config to end of .zshrc
+  become: false
+  blockinfile:
+    path: "{{ home_dir }}/.zshrc"
+    block: |
+      eval "$(atuin init zsh)"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Atuin CONFIG"
+    insertafter: EOF
+    create: false
+
+- name: Add zoxide config to end of .zshrc
+  become: false
+  blockinfile:
+    path: "{{ home_dir }}/.zshrc"
+    block: |
+      eval "$(zoxide init zsh)"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Zoxide CONFIG"
+    insertafter: EOF
+    create: false

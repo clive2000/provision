@@ -1,0 +1,5 @@
+---
+- name: Install GitHub CLI on Arch Linux
+  community.general.pacman:
+    name: github-cli
+    state: present

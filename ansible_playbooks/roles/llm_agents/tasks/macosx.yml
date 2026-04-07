@@ -1,0 +1,17 @@
+- name: Install Claude Code via Homebrew cask
+  become: false
+  community.general.homebrew_cask:
+    name: claude-code
+    state: present
+
+- name: Install Codex CLI via Homebrew cask
+  become: false
+  community.general.homebrew_cask:
+    name: codex
+    state: present
+
+- name: Install OpenCode via Homebrew
+  become: false
+  community.general.homebrew:
+    name: opencode
+    state: present

@@ -1,0 +1,11 @@
+- name: Install common packages on MacOSX
+  become: false
+  community.general.homebrew:
+    name: "{{ homebrew_packages_macosx }}"
+    state: present
+
+- name: Install Homebrew casks
+  become: false
+  community.general.homebrew_cask:
+    name: "{{ homebrew_casks_macosx }}"
+    state: present

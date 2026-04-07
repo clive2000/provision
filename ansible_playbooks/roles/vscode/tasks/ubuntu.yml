@@ -1,0 +1,57 @@
+- name: Check if VS Code is installed
+  ansible.builtin.command: which code
+  register: vscode_check
+  ignore_errors: true  # Don't fail if 'which code' returns a non-zero exit code
+
+- name: Install required packages (wget, gpg)
+  apt:
+    name:
+      - gpg
+    state: present
+  when: vscode_check.rc != 0  # Run only if VS Code is NOT installed
+
+- name: Download Microsoft GPG key
+  ansible.builtin.get_url:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    dest: /tmp/microsoft.asc
+    mode: '0644'
+  when: vscode_check.rc != 0
+
+- name: Dearmor Microsoft GPG key
+  ansible.builtin.shell: gpg --dearmor < /tmp/microsoft.asc > /tmp/packages.microsoft.gpg
+  args:
+    creates: /tmp/packages.microsoft.gpg
+  when: vscode_check.rc != 0
+
+- name: Add Microsoft GPG key to apt keyring
+  ansible.builtin.copy:
+    src: /tmp/packages.microsoft.gpg
+    dest: /etc/apt/keyrings/packages.microsoft.gpg
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: yes
+  when: vscode_check.rc != 0
+
+- name: Add VS Code repository to apt sources
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main"
+    state: present
+    filename: vscode
+  when: vscode_check.rc != 0
+
+- name: Clean up temporary files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/microsoft.asc
+    - /tmp/packages.microsoft.gpg
+  when: vscode_check.rc != 0
+
+- name: Install VS Code
+  apt:
+    name: code
+    state: present
+    update_cache: yes
+  when: vscode_check.rc != 0

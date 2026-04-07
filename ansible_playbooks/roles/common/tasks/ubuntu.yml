@@ -1,0 +1,13 @@
+- name: Install essential packages (Debian/Ubuntu)
+  apt:
+    name: "{{ common_packages_ubuntu }}"
+    state: present
+
+- name: Install vm spcific packages
+  apt:
+    name: open-vm-tools
+    state: present
+  when: ansible_facts['virtualization_type'] == "VMware" and ansible_facts['virtualization_role'] == "guest"
+
+- name: Perform fonts insallation
+  include_tasks: "fonts.yml"

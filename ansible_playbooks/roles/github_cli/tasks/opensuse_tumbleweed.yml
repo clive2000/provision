@@ -1,0 +1,5 @@
+- name: Install gh (Suse)
+  community.general.zypper:
+    name:
+      - gh
+    state: present
