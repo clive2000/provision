@@ -31,15 +31,6 @@
     - name: Execute atuin installer
       ansible.builtin.shell: /tmp/atuin_installer.sh
 
-- name: Add atuin config to end of .zshrc
-  become: false
-  blockinfile:
-    path: "/home/{{ original_user }}/.zshrc"
-    block: |
-      eval "$(atuin init zsh)"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - Atuin CONFIG"
-    insertafter: EOF
-    create: false
 
 - name: Install zoxide
   when: not zoxide_stat.stat.exists
@@ -54,15 +45,6 @@
     - name: Execute atuin installer
       ansible.builtin.shell: /tmp/zoxide_installer.sh
 
-- name: Add zoxide config to end of .zshrc
-  become: false
-  blockinfile:
-    path: "/home/{{ original_user }}/.zshrc"
-    block: |
-      eval "$(zoxide init zsh)"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - Zoxide CONFIG"
-    insertafter: EOF
-    create: false
 
 - name: Install eza
   when: not eza_stat.stat.exists
